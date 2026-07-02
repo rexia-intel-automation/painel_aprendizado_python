@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PySchool - Plataforma Local</title>
+    <style>
+        /* ===== DESIGN TOKENS (Importados do designsystem.html) ===== */
+        :root {
+            --color-primary: #3776AB; --color-primary-hover: #2c5d8a;
+            --color-secondary: #FFD43B; --color-secondary-hover: #e6bf2e;
+            --color-success: #28A745; --color-error: #DC3545; --color-warning: #FFC107;
+            --color-bg: #F4F5F7; --color-surface: #FFFFFF;
+            --color-text-primary: #1A1A1A; --color-text-secondary: #6C757D; --color-border: #DEE2E6;
+            --font-family-base: 'Inter', 'Segoe UI', Roboto, sans-serif;
+            --font-family-code: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+            --font-size-xs: 12px; --font-size-sm: 14px; --font-size-md: 16px; --font-size-lg: 20px; --font-size-xl: 28px;
+            --spacing-xs: 4px; --spacing-sm: 8px; --spacing-md: 16px; --spacing-lg: 24px; --spacing-xl: 32px;
+            --radius-sm: 4px; --radius-md: 8px; --radius-lg: 12px; --radius-pill: 999px;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.1); --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: var(--font-family-base); background-color: var(--color-bg); color: var(--color-text-primary); display: flex; min-height: 100vh; }
+        
+        /* ===== SIDEBAR ===== */
+        .sidebar { width: 260px; background: var(--color-surface); border-right: 1px solid var(--color-border); padding: var(--spacing-lg); display: flex; flex-direction: column; }
+        .logo { font-size: var(--font-size-lg); font-weight: 800; color: var(--color-primary); margin-bottom: var(--spacing-xl); display: flex; align-items: center; gap: var(--spacing-sm); }
+        .nav-item { padding: 12px; border-radius: var(--radius-md); cursor: pointer; margin-bottom: var(--spacing-xs); display: flex; align-items: center; gap: 10px; color: var(--color-text-secondary); font-weight: 500; transition: 0.2s; }
+        .nav-item:hover { background: var(--color-bg); color: var(--color-primary); }
+        .nav-item.active { background: var(--color-primary); color: white; }
+        
+        /* ===== MAIN CONTENT ===== */
+        .main { flex: 1; padding: var(--spacing-xl); overflow-y: auto; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-xl); }
+        .user-info { display: flex; align-items: center; gap: var(--spacing-md); }
+        .avatar { width: 40px; height: 40px; background: var(--color-secondary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: var(--color-text-primary); }
+        
+        /* ===== COMPONENTES ===== */
+        .btn { font-family: var(--font-family-base); padding: 10px 20px; border: none; border-radius: var(--radius-md); cursor: pointer; font-weight: 600; transition: 0.2s; }
+        .btn-primary { background: var(--color-primary); color: white; }
+        .btn-primary:hover { background: var(--color-primary-hover); }
+        .btn-secondary { background: var(--color-secondary); color: var(--color-text-primary); }
+        .btn-outline { background: transparent; border: 1px solid var(--color-border); color: var(--color-text-primary); }
+        
+        .card { background: var(--color-surface); border-radius: var(--radius-lg); padding: var(--spacing-lg); box-shadow: var(--shadow-sm); border: 1px solid var(--color-border); margin-bottom: var(--spacing-lg); }
+        .badge { padding: 4px 12px; border-radius: var(--radius-pill); font-size: var(--font-size-xs); font-weight: bold; text-transform: uppercase; }
+        .badge-success { background: #e6f4ea; color: var(--color-success); }
+        .badge-warning { background: #fff8e1; color: var(--color-warning); }
+        
+        .progress-container { width: 100%; background: #e9ecef; border-radius: var(--radius-pill); overflow: hidden; height: 8px; margin-top: var(--spacing-sm); }
+        .progress-bar { height: 100%; background: var(--color-primary); border-radius: var(--radius-pill); transition: width 0.5s; }
+        
+        .input { width: 100%; padding: 10px; font-size: var(--font-size-md); border: 1px solid var(--color-border); border-radius: var(--radius-sm); font-family: var(--font-family-base); margin-bottom: var(--spacing-md); }
+        
+        /* ===== EDITOR DE CÓDIO SIMULADO ===== */
+        .code-editor { background: #1e1e1e; color: #d4d4d4; padding: var(--spacing-md); border-radius: var(--radius-md); font-family: var(--font-family-code); font-size: var(--font-size-sm); line-height: 1.5; width: 100%; min-height: 200px; resize: vertical; border: none; outline: none; }
+        .terminal-output { background: #000; color: #ccc; padding: var(--spacing-md); border-radius: var(--radius-md); font-family: var(--font-family-code); font-size: var(--font-size-sm); min-height: 100px; white-space: pre-wrap; }
+        
+        /* ===== AUTH VIEW ===== */
+        .auth-container { display: flex; justify-content: center; align-items: center; min-height: 100vh; background: var(--color-bg); }
+        .auth-card { width: 400px; }
+        .hidden { display: none !important; }
+        
+        /* ===== HELPERS ===== */
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-lg); }
+        .text-secondary { color: var(--color-text-secondary); }
+        .mt-sm { margin-top: var(--spacing-sm); } .mt-md { margin-top: var(--spacing-md); } .mt-lg { margin-top: var(--spacing-lg); }
+        .flex-between { display: flex; justify-content: space-between; align-items: center; }
+    </style>
+</head>
+<body>
+
+    <!-- ===== TELA DE LOGIN (Auth Local) ===== -->
+    <div id="auth-view" class="auth-container">
+        <div class="card auth-card">
+            <div class="logo" style="justify-content: center; font-size: 32px;">🐍 PySchool</div>
+            <h2 style="text-align: center; margin-bottom: var(--spacing-md);">Login Local</h2>
+            <p style="text-align: center; color: var(--color-text-secondary); margin-bottom: var(--spacing-lg);">Ambiente localhost</p>
+            <input type="text" id="username" class="input" placeholder="Usuário (ex: aluno)" value="aluno">
+            <input type="password" id="password" class="input" placeholder="Senha (ex: 123)" value="123">
+            <button class="btn btn-primary" style="width: 100%;" onclick="login()">Entrar</button>
+        </div>
+    </div>
+
+    <!-- ===== APP PRINCIPAL ===== -->
+    <div id="app-view" class="hidden">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo">🐍 PySchool</div>
+            <div class="nav-item active" onclick="navigateTo('home-view', this)">🏠 Home</div>
+            <div class="nav-item" onclick="navigateTo('profile-view', this)">👤 Perfil</div>
+            <div class="nav-item" onclick="navigateTo('tracking-view', this)">📊 Acompanhamento</div>
+            <div style="flex: 1;"></div>
+            <div class="nav-item" onclick="logout()" style="color: var(--color-error);">🚪 Sair</div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main">
+            <!-- HEADER -->
+            <div class="header">
+                <h1 id="page-title">Bem-vindo de volta!</h1>
+                <div class="user-info">
+                    <span id="user-xp" style="font-weight: bold; color: var(--color-primary);">0 XP</span>
+                    <div class="avatar" id="user-avatar">A</div>
+                </div>
+            </div>
+
+            <!-- ==================== HOME VIEW ==================== -->
+            <div id="home-view" class="view">
+                <div class="card">
+                    <div class="flex-between">
+                        <h2>Módulo 1: Básico de Python (VS Code)</h2>
+                        <span class="badge badge-warning">Em Progresso</span>
+                    </div>
+                    <p class="text-secondary mt-sm">Os 10 primeiros passos para dominar Python rodando localmente no seu Windows.</p>
+                    <div class="progress-container">
+                        <div id="module-progress" class="progress-bar" style="width: 0%;"></div>
+                    </div>
+                </div>
+
+                <h3 class="mt-lg">Lições Disponíveis</h3>
+                <div id="lessons-list" class="mt-md">
+                    <!-- Lições geradas via JS -->
+                </div>
+            </div>
+
+            <!-- ==================== PROFILE VIEW ==================== -->
+            <div id="profile-view" class="view hidden">
+                <div class="grid-2">
+                    <div class="card">
+                        <div style="text-align: center;">
+                            <div class="avatar" style="width: 80px; height: 80px; font-size: 32px; margin: 0 auto var(--spacing-md);">A</div>
+                            <h2>Aluno Local</h2>
+                            <p class="text-secondary">@aluno</p>
+                            <button class="btn btn-outline mt-md">Editar Perfil</button>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h3>Estatísticas</h3>
+                        <div class="mt-md">
+                            <p>Pontuação Total (XP)</p>
+                            <h2 style="color: var(--color-primary);" id="profile-xp">0 XP</h2>
+                        </div>
+                        <div class="mt-md">
+                            <p>Lições Concluídas</p>
+                            <h2 style="color: var(--color-success);" id="profile-completed">0 / 10</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="card mt-lg">
+                    <h3>Conquistas</h3>
+                    <div class="grid-2 mt-md">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span style="font-size: 24px;">🎯</span>
+                            <div>
+                                <strong>Primeiros Passos</strong>
+                                <p class="text-secondary" style="font-size: 12px;">Criou sua conta local</p>
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span style="font-size: 24px;">⚡</span>
+                            <div>
+                                <strong>Hello World</strong>
+                                <p class="text-secondary" style="font-size: 12px;">Completou o exercício 1</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ==================== TRACKING VIEW ==================== -->
+            <div id="tracking-view" class="view hidden">
+                <div class="card">
+                    <h2>Progresso Detalhado</h2>
+                    <p class="text-secondary mt-sm">Acompanhe sua jornada pelos conceitos básicos de Python.</p>
+                    <table class="mt-lg" style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="text-align: left; border-bottom: 2px solid var(--color-border); color: var(--color-text-secondary);">
+                                <th style="padding: 8px;">Aula</th>
+                                <th style="padding: 8px;">Status</th>
+                                <th style="padding: 8px;">Progresso</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tracking-table-body">
+                            <!-- Populado via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ==================== EXERCISE VIEW ==================== -->
+            <div id="exercise-view" class="view hidden">
+                <button class="btn btn-outline mb-md" onclick="navigateTo('home-view', document.querySelector('.nav-item'))">← Voltar para Home</button>
+                
+                <div class="card">
+                    <h2 id="ex-title">Exercício</h2>
+                    <p class="text-secondary mt-sm" id="ex-prompt"></p>
+                    
+                    <div class="mt-lg">
+                        <label><strong>Código (Simule o VS Code):</strong></label>
+                        <textarea id="ex-code" class="code-editor mt-sm"></textarea>
+                    </div>
+
+                    <div class="mt-md">
+                        <label><strong>Terminal de Saída:</strong></label>
+                        <div id="ex-terminal" class="terminal-output mt-sm">Clique em "Rodar Código" para ver o resultado. (Simulação local)</div>
+                    </div>
+
+                    <div class="flex-between mt-lg">
+                        <span class="badge badge-warning" id="ex-status">Pendente</span>
+                        <div>
+                            <button class="btn btn-outline" onclick="runCode()">▶ Rodar Código</button>
+                            <button class="btn btn-secondary" onclick="validateCode()">✔ Validar Resposta</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // ===== SEED DE DADOS: 10 EXERCÍCIOS GUIADOS (Foco VS Code Windows) =====
+        const lessons = [
+            { id: 1, title: "1. Hello World no Terminal", prompt: "No VS Code, crie um arquivo 'main.py'. Use a função print para exibir a frase: Olá, PySchool!", code: 'print("Olá, PySchool!")', expected: "Olá, PySchool!" },
+            { id: 2, title: "2. Variáveis e Tipos", prompt: "Crie uma variável 'nome' com seu nome e uma 'idade' com um número. Imprima: 'Meu nome é [nome] e tenho [idade] anos.'", code: 'nome = "Aluno"\nidade = 25\nprint(f"Meu nome é {nome} e tenho {idade} anos.")', expected: "Meu nome é Aluno e tenho 25 anos." },
+            { id: 3, title: "3. Entrada de Dados (Input)", prompt: "Simule a leitura do terminal. Peça a idade do usuário e imprima 'Você tem X anos.'", code: 'idade = input("Digite sua idade: ")\nprint(f"Você tem {idade} anos.")', expected: "Você tem 30 anos." },
+            { id: 4, title: "4. Estruturas Condicionais (If/Else)", prompt: "Crie uma variável 'nota'. Se for maior ou igual a 7, imprima 'Aprovado'. Senão, 'Reprovado'.", code: 'nota = 8\nif nota >= 7:\n    print("Aprovado")\nelse:\n    print("Reprovado")', expected: "Aprovado" },
+            { id: 5, title: "5. Laços de Repetição (For)", prompt: "Use um loop for para imprimir os números de 1 a 5, cada um em uma linha.", code: 'for i in range(1, 6):\n    print(i)', expected: "1\n2\n3\n4\n5" },
+            { id: 6, title: "6. Trabalhando com Listas", prompt: "Crie uma lista com 'Maçã', 'Banana' e 'Uva'. Imprima o segundo item da lista.", code: 'frutas = ["Maçã", "Banana", "Uva"]\nprint(frutas[1])', expected: "Banana" },
+            { id: 7, title: "7. Laço While", prompt: "Use um while para imprimir uma contagem regressiva de 3 a 1, depois imprima 'Fogo!'.", code: 'contador = 3\nwhile contador > 0:\n    print(contador)\n    contador -= 1\nprint("Fogo!")', expected: "3\n2\n1\nFogo!" },
+            { id: 8, title: "8. Criando Funções", prompt: "Crie uma função 'saudar(nome)' que retorna 'Bem-vindo, [nome]!'. Chame a função para 'Python'.", code: 'def saudar(nome):\n    return f"Bem-vindo, {nome}!"\n\nprint(saudar("Python"))', expected: "Bem-vindo, Python!" },
+            { id: 9, title: "9. Dicionários", prompt: "Crie um dicionário 'pessoa' com chaves 'nome' e 'idade'. Imprima apenas a idade.", code: 'pessoa = {"nome": "João", "idade": 28}\nprint(pessoa["idade"])', expected: "28" },
+            { id: 10, title: "10. Manipulação de Arquivos (Local)", prompt: "Simule a escrita em um arquivo 'dados.txt' e leia em seguida. Imprima o conteúdo lido.", code: 'with open("dados.txt", "w") as f:\n    f.write("PySchool roda no Windows!")\nwith open("dados.txt", "r") as f:\n    print(f.read())', expected: "PySchool roda no Windows!" }
+        ];
+
+        // ===== ESTADO DA APLICAÇÃO (Simulando Backend Local) =====
+        let userState = {
+            isLoggedIn: false,
+            xp: 0,
+            completedLessons: []
+        };
+
+        // ===== LÓGICA DE AUTH LOCAL =====
+        function login() {
+            const u = document.getElementById('username').value;
+            const p = document.getElementById('password').value;
+            if(u && p) { // Simulação simples
+                userState.isLoggedIn = true;
+                document.getElementById('auth-view').classList.add('hidden');
+                document.getElementById('app-view').classList.remove('hidden');
+                document.getElementById('user-avatar').innerText = u[0].toUpperCase();
+                initApp();
+            } else {
+                alert("Preencha usuário e senha!");
+            }
+        }
+
+        function logout() {
+            userState.isLoggedIn = false;
+            userState.xp = 0;
+            userState.completedLessons = [];
+            document.getElementById('app-view').classList.add('hidden');
+            document.getElementById('auth-view').classList.remove('hidden');
+        }
+
+        // ===== NAVEGAÇÃO SPA =====
+        function navigateTo(viewId, element) {
+            document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
+            document.getElementById(viewId).classList.remove('hidden');
+            
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            if(element) element.classList.add('active');
+
+            const titles = {
+                'home-view': 'Bem-vindo de volta!',
+                'profile-view': 'Meu Perfil',
+                'tracking-view': 'Acompanhamento de Progresso',
+                'exercise-view': 'Editor de Exercício'
+            };
+            document.getElementById('page-title').innerText = titles[viewId] || 'PySchool';
+        }
+
+        // ===== INICIALIZAÇÃO =====
+        function initApp() {
+            renderHome();
+            renderTracking();
+        }
+
+        function renderHome() {
+            const list = document.getElementById('lessons-list');
+            list.innerHTML = '';
+            lessons.forEach(lesson => {
+                const isCompleted = userState.completedLessons.includes(lesson.id);
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.style.cursor = 'pointer';
+                card.onclick = () => loadExercise(lesson.id);
+                
+                card.innerHTML = `
+                    <div class="flex-between">
+                        <h3 style="margin:0;">${lesson.title}</h3>
+                        <span class="badge ${isCompleted ? 'badge-success' : 'badge-warning'}">${isCompleted ? 'Concluído' : 'Pendente'}</span>
+                    </div>
+                    <p class="text-secondary mt-sm" style="margin-bottom:0;">${lesson.prompt}</p>
+                `;
+                list.appendChild(card);
+            });
+            updateProgress();
+        }
+
+        function renderTracking() {
+            const tbody = document.getElementById('tracking-table-body');
+            tbody.innerHTML = '';
+            lessons.forEach(lesson => {
+                const isCompleted = userState.completedLessons.includes(lesson.id);
+                const tr = document.createElement('tr');
+                tr.style.borderBottom = '1px solid var(--color-border)';
+                tr.innerHTML = `
+                    <td style="padding: 12px 8px;">${lesson.title}</td>
+                    <td style="padding: 12px 8px;">
+                        <span class="badge ${isCompleted ? 'badge-success' : 'badge-warning'}">${isCompleted ? 'Feito' : 'A Fazer'}</span>
+                    </td>
+                    <td style="padding: 12px 8px; width: 40%;">
+                        <div class="progress-container" style="margin:0;">
+                            <div class="progress-bar" style="width: ${isCompleted ? 100 : 0}%;"></div>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function updateProgress() {
+            const progress = (userState.completedLessons.length / lessons.length) * 100;
+            document.getElementById('module-progress').style.width = `${progress}%`;
+            document.getElementById('user-xp').innerText = `${userState.xp} XP`;
+            document.getElementById('profile-xp').innerText = `${userState.xp} XP`;
+            document.getElementById('profile-completed').innerText = `${userState.completedLessons.length} / ${lessons.length}`;
+        }
+
+        // ===== LÓGICA DO EXERCÍCIO (Simulando execução do Python) =====
+        let currentLesson = null;
+
+        function loadExercise(id) {
+            currentLesson = lessons.find(l => l.id === id);
+            document.getElementById('ex-title').innerText = currentLesson.title;
+            document.getElementById('ex-prompt').innerText = currentLesson.prompt;
+            document.getElementById('ex-code').value = currentLesson.code;
+            document.getElementById('ex-terminal').innerText = "Terminal limpo. Rode o código.";
+            
+            const isCompleted = userState.completedLessons.includes(currentLesson.id);
+            const statusBadge = document.getElementById('ex-status');
+            statusBadge.className = `badge ${isCompleted ? 'badge-success' : 'badge-warning'}`;
+            statusBadge.innerText = isCompleted ? 'Concluído' : 'Pendente';
+
+            navigateTo('exercise-view', null);
+        }
+
+        function runCode() {
+            const code = document.getElementById('ex-code').value;
+            // SIMULAÇÃO: Em ambiente real, isso enviaria para o backend FastAPI/Flask
+            // rodar em subprocess. Aqui simulamos a saída para o exercício 1.
+            const terminal = document.getElementById('ex-terminal');
+            
+            terminal.innerText = "Executando script no terminal do VS Code...\n";
+            setTimeout(() => {
+                if(currentLesson.id === 3) {
+                    terminal.innerText += "Digite sua idade: 30\nVocê tem 30 anos.";
+                } else {
+                    terminal.innerText += currentLesson.expected;
+                }
+            }, 500);
+        }
+
+        function validateCode() {
+            // SIMULAÇÃO: O backend real rodaria unittest. Aqui validamos se o usuário clicou em rodar.
+            if(!userState.completedLessons.includes(currentLesson.id)) {
+                userState.completedLessons.push(currentLesson.id);
+                userState.xp += 50; // Ganha 50 XP por lição
+                
+                document.getElementById('ex-status').className = 'badge badge-success';
+                document.getElementById('ex-status').innerText = 'Concluído!';
+                
+                alert(`Parabéns! Você ganhou 50 XP! Total: ${userState.xp} XP`);
+                updateProgress();
+            } else {
+                alert("Você já concluiu esta lição!");
+            }
+        }
+    </script>
+</body>
+</html>
