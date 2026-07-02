@@ -1,1 +1,174 @@
 
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PySchool - Backend Specs & Schema</title>
+    <style>
+        body { font-family: 'Segoe UI', Roboto, sans-serif; background: #f8f9fa; color: #333; line-height: 1.6; padding: 20px; }
+        h1, h2, h3 { color: #3776AB; }
+        h2 { border-bottom: 2px solid #3776AB; padding-bottom: 5px; margin-top: 40px; }
+        .table-container { overflow-x: auto; background: #fff; border: 1px solid #dee2e6; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #dee2e6; font-size: 14px; }
+        th { background-color: #f1f3f5; font-weight: bold; color: #3776AB; }
+        tr:hover { background-color: #f8f9fa; }
+        .pk { font-weight: bold; color: #d6336c; }
+        .fk { color: #1864ab; }
+        .relation { background: #e7f5ff; border-left: 4px solid #1864ab; padding: 10px 15px; margin-bottom: 20px; border-radius: 4px; }
+        code { background: #e9ecef; padding: 2px 4px; border-radius: 3px; font-family: 'Fira Code', monospace; }
+    </style>
+</head>
+<body>
+
+    <h1>PySchool - Especificação de Banco de Dados (MySQL)</h1>
+    <p>Especificação das tabelas, relacionamentos e schema do banco de dados local MySQL para a plataforma PySchool.</p>
+
+    <div class="relation">
+        <strong>Resumo de Relacionamentos:</strong><br>
+        1. <code>users</code> 1:N <code>user_progress</code><br>
+        2. <code>modules</code> 1:N <code>lessons</code><br>
+        3. <code>lessons</code> 1:N <code>exercises</code><br>
+        4. <code>users</code> 1:N <code>user_exercise_submissions</code><br>
+        5. <code>exercises</code> 1:N <code>user_exercise_submissions</code><br>
+        6. <code>users</code> N:M <code>achievements</code> (via <code>user_achievements</code>)
+    </div>
+
+    <h2>Tabela: users</h2>
+    <p>Armazena os dados dos alunos utilizando a plataforma localmente.</p>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr><th>Campo</th><th>Tipo</th><th>Null</th><th>Key</th><th>Extra</th><th>Descrição</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>id</td><td>INT</td><td>NO</td><td class="pk">PK</td><td>AUTO_INCREMENT</td><td>Identificador único</td></tr>
+                <tr><td>username</td><td>VARCHAR(50)</td><td>NO</td><td>UNIQUE</td><td>-</td><td>Nome de login</td></tr>
+                <tr><td>password_hash</td><td>VARCHAR(255)</td><td>NO</td><td>-</td><td>-</td><td>Senha criptografada (bcrypt)</td></tr>
+                <tr><td>total_xp</td><td>INT</td><td>NO</td><td>-</td><td>DEFAULT 0</td><td>Pontuação de experiência</td></tr>
+                <tr><td>created_at</td><td>TIMESTAMP</td><td>NO</td><td>-</td><td>DEFAULT CURRENT_TIMESTAMP</td><td>Data de criação</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <h2>Tabela: modules</h2>
+    <p>Trilhas de aprendizado principais (ex: Básico, Intermediário).</p>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr><th>Campo</th><th>Tipo</th><th>Null</th><th>Key</th><th>Extra</th><th>Descrição</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>id</td><td>INT</td><td>NO</td><td class="pk">PK</td><td>AUTO_INCREMENT</td><td>Identificador único</td></tr>
+                <tr><td>title</td><td>VARCHAR(100)</td><td>NO</td><td>-</td><td>-</td><td>Nome do módulo</td></tr>
+                <tr><td>description</td><td>TEXT</td><td>YES</td><td>-</td><td>-</td><td>Descrição do módulo</td></tr>
+                <tr><td>order_num</td><td>INT</td><td>NO</td><td>-</td><td>-</td><td>Ordem de exibição</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <h2>Tabela: lessons</h2>
+    <p>Lições dentro de cada módulo. Contém a teoria.</p>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr><th>Campo</th><th>Tipo</th><th>Null</th><th>Key</th><th>Extra</th><th>Descrição</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>id</td><td>INT</td><td>NO</td><td class="pk">PK</td><td>AUTO_INCREMENT</td><td>Identificador único</td></tr>
+                <tr><td>module_id</td><td>INT</td><td>NO</td><td class="fk">FK</td><td>-</td><td>Ref: modules(id)</td></tr>
+                <tr><td>title</td><td>VARCHAR(100)</td><td>NO</td><td>-</td><td>-</td><td>Título da lição</td></tr>
+                <tr><td>content_md</td><td>LONGTEXT</td><td>NO</td><td>-</td><td>-</td><td>Conteúdo teórico em Markdown</td></tr>
+                <tr><td>order_num</td><td>INT</td><td>NO</td><td>-</td><td>-</td><td>Ordem dentro do módulo</td></tr>
+                <tr><td>xp_reward</td><td>INT</td><td>NO</td><td>-</td><td>DEFAULT 50</td><td>XP ganho ao concluir</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <h2>Tabela: user_progress</h2>
+    <p>Relaciona usuários às lições que eles concluíram.</p>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr><th>Campo</th><th>Tipo</th><th>Null</th><th>Key</th><th>Extra</th><th>Descrição</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>id</td><td>INT</td><td>NO</td><td class="pk">PK</td><td>AUTO_INCREMENT</td><td>Identificador único</td></tr>
+                <tr><td>user_id</td><td>INT</td><td>NO</td><td class="fk">FK</td><td>-</td><td>Ref: users(id)</td></tr>
+                <tr><td>lesson_id</td><td>INT</td><td>NO</td><td class="fk">FK</td><td>-</td><td>Ref: lessons(id)</td></tr>
+                <tr><td>completed_at</td><td>TIMESTAMP</td><td>NO</td><td>-</td><td>DEFAULT CURRENT_TIMESTAMP</td><td>Data de conclusão</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <h2>Tabela: exercises</h2>
+    <p>Desafios de código embutidos nas lições ou módulos.</p>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr><th>Campo</th><th>Tipo</th><th>Null</th><th>Key</th><th>Extra</th><th>Descrição</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>id</td><td>INT</td><td>NO</td><td class="pk">PK</td><td>AUTO_INCREMENT</td><td>Identificador único</td></tr>
+                <tr><td>lesson_id</td><td>INT</td><td>YES</td><td class="fk">FK</td><td>-</td><td>Ref: lessons(id) - Pode ser nulo se for desafio avulso</td></tr>
+                <tr><td>prompt</td><td>TEXT</td><td>NO</td><td>-</td><td>-</td><td>Enunciado do problema</td></tr>
+                <tr><td>starter_code</td><td>TEXT</td><td>YES</td><td>-</td><td>-</td><td>Código inicial do usuário</td></tr>
+                <tr><td>test_script</td><td>TEXT</td><td>NO</td><td>-</td><td>-</td><td>Script de testes (unittest) para validar a resposta</td></tr>
+                <tr><td>xp_reward</td><td>INT</td><td>NO</td><td>-</td><td>DEFAULT 100</td><td>XP ganho ao resolver</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <h2>Tabela: user_exercise_submissions</h2>
+    <p>Histórico de tentativas de código dos usuários nos exercícios.</p>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr><th>Campo</th><th>Tipo</th><th>Null</th><th>Key</th><th>Extra</th><th>Descrição</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>id</td><td>INT</td><td>NO</td><td class="pk">PK</td><td>AUTO_INCREMENT</td><td>Identificador único</td></tr>
+                <tr><td>user_id</td><td>INT</td><td>NO</td><td class="fk">FK</td><td>-</td><td>Ref: users(id)</td></tr>
+                <tr><td>exercise_id</td><td>INT</td><td>NO</td><td class="fk">FK</td><td>-</td><td>Ref: exercises(id)</td></tr>
+                <tr><td>submitted_code</td><td>TEXT</td><td>NO</td><td>-</td><td>-</td><td>Código enviado pelo usuário</td></tr>
+                <tr><td>is_correct</td><td>BOOLEAN</td><td>NO</td><td>-</td><td>DEFAULT FALSE</td><td>Se passou nos testes ou não</td></tr>
+                <tr><td>created_at</td><td>TIMESTAMP</td><td>NO</td><td>-</td><td>DEFAULT CURRENT_TIMESTAMP</td><td>Data da tentativa</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <h2>Tabela: achievements</h2>
+    <p>Conquistas/Badges disponíveis no sistema.</p>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr><th>Campo</th><th>Tipo</th><th>Null</th><th>Key</th><th>Extra</th><th>Descrição</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>id</td><td>INT</td><td>NO</td><td class="pk">PK</td><td>AUTO_INCREMENT</td><td>Identificador único</td></tr>
+                <tr><td>name</td><td>VARCHAR(50)</td><td>NO</td><td>-</td><td>-</td><td>Nome da conquista (ex: "Mestre da POO")</td></tr>
+                <tr><td>description</td><td>VARCHAR(255)</td><td>NO</td><td>-</td><td>-</td><td>Como conquistar</td></tr>
+                <tr><td>icon_url</td><td>VARCHAR(255)</td><td>YES</td><td>-</td><td>-</td><td>Caminho do ícone local</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <h2>Tabela: user_achievements</h2>
+    <p>Tabela de junção (N:M) entre usuários e conquistas.</p>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr><th>Campo</th><th>Tipo</th><th>Null</th><th>Key</th><th>Extra</th><th>Descrição</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>id</td><td>INT</td><td>NO</td><td class="pk">PK</td><td>AUTO_INCREMENT</td><td>Identificador único</td></tr>
+                <tr><td>user_id</td><td>INT</td><td>NO</td><td class="fk">FK</td><td>-</td><td>Ref: users(id)</td></tr>
+                <tr><td>achievement_id</td><td>INT</td><td>NO</td><td class="fk">FK</td><td>-</td><td>Ref: achievements(id)</td></tr>
+                <tr><td>awarded_at</td><td>TIMESTAMP</td><td>NO</td><td>-</td><td>DEFAULT CURRENT_TIMESTAMP</td><td>Data de recebimento</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+</body>
+</html>
