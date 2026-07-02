@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PySchool - Protótipo Estático</title>
+    <style>
+        :root {
+            --color-primary: #306998;
+            --color-primary-dark: #1e466e;
+            --color-secondary: #FFD43B;
+            --color-secondary-dark: #e6bd2e;
+            --color-success: #28a745;
+            --color-danger: #dc3545;
+            
+            /* Tema Dark Neutro */
+            --color-bg: #121212;
+            --color-surface: #1e1e1e;
+            --color-surface-light: #2d2d2d;
+            --color-text-primary: #ffffff;
+            --color-text-secondary: #b0b0b0;
+            --color-border: #3a3a3a;
+            
+            --font-family-ui: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            --font-family-code: 'Fira Code', 'Courier New', monospace;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background-color: var(--color-bg);
+            color: var(--color-text-primary);
+            font-family: var(--font-family-ui);
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 250px;
+            background-color: var(--color-surface);
+            border-right: 1px solid var(--color-border);
+            padding: 20px 0;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+        .logo {
+            text-align: center;
+            margin-bottom: 40px;
+            color: var(--color-secondary);
+            font-size: 24px;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+        .nav-item {
+            padding: 15px 25px;
+            color: var(--color-text-secondary);
+            cursor: pointer;
+            border-left: 4px solid transparent;
+            transition: 0.3s;
+            user-select: none;
+        }
+        .nav-item:hover { background-color: var(--color-surface-light); color: var(--color-text-primary); }
+        .nav-item.active { color: var(--color-secondary); border-left-color: var(--color-secondary); background-color: var(--color-surface-light); }
+
+        /* Main Content */
+        .main-content { flex: 1; padding: 40px; overflow-y: auto; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; }
+        .header h1 { color: var(--color-text-primary); }
+        .user-info { display: flex; align-items: center; gap: 15px; }
+        .xp-badge { background: var(--color-primary); padding: 8px 15px; border-radius: 20px; font-size: 14px; font-weight: bold; }
+
+        /* Components */
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: 0.2s;
+            font-family: var(--font-family-ui);
+            font-size: 15px;
+        }
+        .btn-primary { background-color: var(--color-primary); color: #fff; }
+        .btn-primary:hover { background-color: var(--color-primary-dark); }
+        .btn-secondary { background-color: var(--color-secondary); color: var(--color-bg); }
+        .btn-danger { background-color: var(--color-danger); color: #fff; }
+        
+        .card {
+            background-color: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+        .card h3 { color: var(--color-secondary); margin-bottom: 15px; }
+        .card p { color: var(--color-text-secondary); margin-bottom: 15px; line-height: 1.6; }
+
+        input[type="text"], input[type="password"], input[type="email"] {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            background-color: var(--color-bg);
+            border: 1px solid var(--color-border);
+            border-radius: 6px;
+            color: var(--color-text-primary);
+            font-family: var(--font-family-ui);
+        }
+        input:focus { outline: none; border-color: var(--color-primary); }
+        
+        .lesson-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: var(--color-bg);
+            border-radius: 6px;
+            margin-bottom: 10px;
+            border-left: 4px solid var(--color-border);
+        }
+        .lesson-item.completed { border-left-color: var(--color-success); }
+        
+        pre {
+            background: #000;
+            padding: 15px;
+            border-radius: 6px;
+            color: #0f0;
+            font-family: var(--font-family-code);
+            overflow-x: auto;
+            margin: 15px 0;
+            border: 1px solid var(--color-border);
+            font-size: 14px;
+            white-space: pre-wrap;
+        }
+        code { font-family: var(--font-family-code); }
+
+        .progress-bar { width: 100%; height: 8px; background-color: var(--color-surface-light); border-radius: 4px; overflow: hidden; margin-top: 10px; }
+        .progress-fill { height: 100%; background-color: var(--color-secondary); transition: width 0.5s; }
+        
+        .hidden { display: none !important; }
+        
+        .btn-check {
+            background: transparent;
+            border: 1px solid var(--color-border);
+            color: var(--color-text-secondary);
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .btn-check:hover { border-color: var(--color-success); color: var(--color-success); }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background: var(--color-surface);
+            padding: 30px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 700px;
+            max-height: 80vh;
+            overflow-y: auto;
+            border: 1px solid var(--color-border);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="logo">PySchool</div>
+        <div class="nav-item active" data-view="dashboard" onclick="navigateTo('dashboard', this)">Dashboard</div>
+        <div class="nav-item" data-view="tracks" onclick="navigateTo('tracks', this)">Trilha Python</div>
+        <div class="nav-item" data-view="progress" onclick="navigateTo('progress', this)">Acompanhamento</div>
+        <div class="nav-item" data-view="profile" onclick="navigateTo('profile', this)">Perfil</div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        
+        <!-- PÁGINA: DASHBOARD -->
+        <section id="page-dashboard" class="page-content">
+            <div class="header">
+                <h1>Bem-vindo, Aluno!</h1>
+                <div class="user-info">
+                    <span class="xp-badge">50 XP</span>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h3>Continue de onde parou</h3>
+                <p>4. Entrada de Dados (Input)</p>
+                <button class="btn btn-primary" onclick="navigateTo('tracks', document.querySelector('.nav-item[data-view=tracks]'))">Retomar Aula</button>
+            </div>
+
+            <div class="card">
+                <h3>Seu Progresso Geral</h3>
+                <p>Você concluiu 3 de 10 lições básicas.</p>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 30%"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PÁGINA: TRILHAS -->
+        <section id="page-tracks" class="page-content hidden">
+            <div class="header">
+                <h1>Trilha: Python Fundamentos</h1>
+            </div>
+            <div class="card">
+                <h3>Lições Disponíveis</h3>
+                <p>Configure seu VS Code no Windows e siga os passos. Clique em "Iniciar" para ver o enunciado e o código base.</p>
+                <div id="lessons-container">
+                    <!-- Lições renderizadas via JS estático -->
+                </div>
+            </div>
+        </section>
+
+        <!-- PÁGINA: ACOMPANHAMENTO -->
+        <section id="page-progress" class="page-content hidden">
+            <div class="header">
+                <h1>Acompanhamento de Progresso</h1>
+            </div>
+            
+            <div class="card">
+                <h3>Estatísticas</h3>
+                <p>Total de XP: <strong>50</strong></p>
+                <p>Lições Concluídas: <strong>3 / 10</strong></p>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 30%"></div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>Lições Pendentes</h3>
+                <div class="lesson-item"><span>4. Entrada de Dados (Input)</span></div>
+                <div class="lesson-item"><span>5. Operadores Matemáticos</span></div>
+                <div class="lesson-item"><span>6. Estruturas Condicionais (If/Else)</span></div>
+                <div class="lesson-item"><span>7. Listas Básicas</span></div>
+                <div class="lesson-item"><span>8. Laços de Repetição (For)</span></div>
+                <div class="lesson-item"><span>9. Laços de Repetição (While)</span></div>
+                <div class="lesson-item"><span>10. Funções Básicas</span></div>
+            </div>
+        </section>
+
+        <!-- PÁGINA: PERFIL -->
+        <section id="page-profile" class="page-content hidden">
+            <div class="header">
+                <h1>Perfil do Usuário</h1>
+            </div>
+            
+            <div class="card">
+                <h3>Dados da Conta</h3>
+                <p><strong>Nome:</strong> Aluno PySchool</p>
+                <p><strong>E-mail:</strong> aluno@pyschool.local</p>
+                <p><strong>XP Total:</strong> 50</p>
+                <br>
+                <button class="btn btn-danger" onclick="alert('Lógica de logout será implementada no backend.')">Sair da Conta (Logout)</button>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- Modal da Lição -->
+    <div id="modal-container"></div>
+
+    <script>
+        // --- DADOS ESTÁTICOS DAS LIÇÕES (SEED) ---
+        const SEED_LESSONS = [
+            { id: 1, title: "1. Configuração do VS Code no Windows", content: "Para começar, instale o Python e o VS Code.\n1. Baixe o Python em python.org (marque 'Add Python to PATH').\n2. Instale o VS Code.\n3. No VS Code, instale a extensão oficial do Python da Microsoft.", initial_code: "# Abra o terminal no VS Code (Ctrl + ) e digite:\n# python --version", solution: "Python 3.x.x", completed: true },
+            { id: 2, title: "2. Seu primeiro Hello World", content: "Vamos criar um arquivo `app.py` e usar a função print para exibir uma mensagem.", initial_code: "# Escreva seu código aqui\nprint('Olá, PySchool!')", solution: "Olá, PySchool!", completed: true },
+            { id: 3, title: "3. Variáveis e Tipos", content: "Variáveis guardam dados. Em Python, não precisamos declarar o tipo.", initial_code: "nome = 'Joao'\nidade = 25\nprint(type(nome))\nprint(type(idade))", solution: "<class 'str'>\n<class 'int'>", completed: true },
+            { id: 4, title: "4. Entrada de Dados (Input)", content: "Use a função input() para receber dados do usuário no terminal.", initial_code: "nome = input('Digite seu nome: ')\nprint('Bem-vindo, ' + nome)", solution: "Bem-vindo, [Nome digitado]", completed: false },
+            { id: 5, title: "5. Operadores Matemáticos", content: "Python pode fazer cálculos. Crie uma calculadora simples de soma.", initial_code: "a = 10\nb = 5\nsoma = a + b\nprint(soma)", solution: "15", completed: false },
+            { id: 6, title: "6. Estruturas Condicionais (If/Else)", content: "Tomando decisões no código baseado em condições.", initial_code: "idade = 18\nif idade >= 18:\n    print('Maior de idade')\nelse:\n    print('Menor de idade')", solution: "Maior de idade", completed: false },
+            { id: 7, title: "7. Listas Básicas", content: "Listas guardam múltiplos itens em uma variável.", initial_code: "frutas = ['maca', 'banana', 'uva']\nprint(frutas[0])\nfrutas.append('laranja')\nprint(frutas)", solution: "maca\n['maca', 'banana', 'uva', 'laranja']", completed: false },
+            { id: 8, title: "8. Laços de Repetição (For)", content: "Iterando sobre uma lista para executar ações repetidas.", initial_code: "frutas = ['maca', 'banana', 'uva']\nfor fruta in frutas:\n    print(fruta)", solution: "maca\nbanana\nuva", completed: false },
+            { id: 9, title: "9. Laços de Repetição (While)", content: "Executando enquanto uma condição for verdadeira.", initial_code: "contador = 0\nwhile contador < 3:\n    print('Contando:', contador)\n    contador += 1", solution: "Contando: 0\nContando: 1\nContando: 2", completed: false },
+            { id: 10, title: "10. Funções Básicas", content: "Criando blocos de código reutilizáveis com a palavra-chave 'def'.", initial_code: "def saudar(nome):\n    return 'Ola ' + nome\n\nprint(saudar('Maria'))", solution: "Ola Maria", completed: false }
+        ];
+
+        // --- NAVEGAÇÃO (Tabs Estáticas) ---
+        function navigateTo(view, element) {
+            // Esconde todas as páginas
+            document.querySelectorAll('.page-content').forEach(el => el.classList.add('hidden'));
+            
+            // Mostra a página selecionada
+            document.getElementById(`page-${view}`).classList.remove('hidden');
+            
+            // Atualiza o menu ativo
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            if(element) {
+                element.classList.add('active');
+            } else {
+                let activeEl = document.querySelector(`.nav-item[data-view="${view}"]`);
+                if(activeEl) activeEl.classList.add('active');
+            }
+
+            // Renderiza as lições se a página for a de trilhas
+            if(view === 'tracks') {
+                renderLessons();
+            }
+        }
+
+        // --- RENDERIZAÇÃO DAS LIÇÕES ---
+        function renderLessons() {
+            const container = document.getElementById('lessons-container');
+            container.innerHTML = SEED_LESSONS.map(lesson => `
+                <div class="lesson-item ${lesson.completed ? 'completed' : ''}">
+                    <div>
+                        <strong>${lesson.title}</strong>
+                        <p style="font-size:12px; color:var(--color-text-secondary); margin-top:5px;">${lesson.content.substring(0, 50)}...</p>
+                    </div>
+                    <button class="btn-check" onclick="openLesson(${lesson.id})">${lesson.completed ? 'Revisar' : 'Iniciar'}</button>
+                </div>
+            `).join('');
+        }
+
+        // --- MODAL DA LIÇÃO ---
+        function openLesson(id) {
+            const lesson = SEED_LESSONS.find(l => l.id === id);
+            const modalContainer = document.getElementById('modal-container');
+            
+            modalContainer.innerHTML = `
+                <div class="modal-overlay" id="lesson-modal">
+                    <div class="modal-content">
+                        <h2 style="color:var(--color-secondary); margin-bottom:15px;">${lesson.title}</h2>
+                        <p style="color:var(--color-text-secondary); margin-bottom:20px; white-space: pre-wrap;">${lesson.content}</p>
+                        
+                        <p><strong>Código Base (Copie para seu VS Code):</strong></p>
+                        <pre><code>${lesson.initial_code}</code></pre>
+                        
+                        <p><strong>Saída Esperada no Terminal:</strong></p>
+                        <pre><code>${lesson.solution || "Execute no VS Code e veja o resultado no terminal."}</code></pre>
+                        
+                        <div style="display:flex; justify-content:space-between; margin-top:20px;">
+                            <button class="btn btn-danger" onclick="closeLesson()">Fechar</button>
+                            ${!lesson.completed ? `<button class="btn btn-primary" onclick="alert('Lógica de conclusão será implementada no backend.')">Marcar como Concluída (+10 XP)</button>` : `<span style="color:var(--color-success); align-self:center; font-weight:bold;">Concluída ✓</span>`}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function closeLesson() {
+            document.getElementById('modal-container').innerHTML = '';
+        }
+
+        // --- INICIALIZAÇÃO ---
+        // Garante que a página de Dashboard inicie visível
+        document.addEventListener('DOMContentLoaded', function() {
+            navigateTo('dashboard', document.querySelector('.nav-item[data-view="dashboard"]'));
+        });
+    </script>
+</body>
+</html>
