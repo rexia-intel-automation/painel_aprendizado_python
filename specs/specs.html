@@ -1,1 +1,149 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PySchool - Especificação de Banco de Dados (MySQL)</title>
+    <style>
+        body { font-family: 'Segoe UI', Roboto, Arial, sans-serif; background: #f4f7f6; color: #333; padding: 20px; line-height: 1.6; }
+        .container { max-width: 900px; margin: auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1, h2 { color: #306998; border-bottom: 2px solid #FFD43B; padding-bottom: 5px; display: inline-block; }
+        h3 { color: #264c70; margin-top: 30px; }
+        pre { background: #1e1e2e; color: #e4e4ef; padding: 15px; border-radius: 5px; overflow-x: auto; font-family: 'Fira Code', monospace; }
+        .highlight { color: #569cd6; } /* Azul para palavras-chave */
+        .string { color: #ce9178; } /* Laranja para strings */
+        .comment { color: #6a9955; font-style: italic; } /* Verde para comentários */
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        th { background: #306998; color: white; }
+        .relation { background: #e8f4f8; padding: 10px; border-left: 4px solid #306998; margin-bottom: 15px; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>PySchool - Schema do Banco de Dados (MySQL Local)</h1>
+        <p>Especificação das tabelas, relações e estrutura para o backend da plataforma PySchool.</p>
 
+        <h2>Visão Geral das Relações (ERD)</h2>
+        <div class="relation">users (1) &lt;---&gt; (N) user_lessons_progress</div>
+        <div class="relation">lessons (1) &lt;---&gt; (N) user_lessons_progress</div>
+        <div class="relation">modules (1) &lt;---&gt; (N) lessons</div>
+        <div class="relation">tracks (1) &lt;---&gt; (N) modules</div>
+        <div class="relation">lessons (1) &lt;---&gt; (N) exercises</div>
+        <div class="relation">users (1) &lt;---&gt; (N) exercise_submissions</div>
+        <div class="relation">exercises (1) &lt;---&gt; (N) exercise_submissions</div>
+        <div class="relation">users (1) &lt;---&gt; (N) user_achievements</div>
+        <div class="relation">achievements (1) &lt;---&gt; (N) user_achievements</div>
+
+        <h2>Script de Criação (DDL)</h2>
+        <pre><code><span class="comment">-- Criando o banco de dados local</span>
+<span class="highlight">CREATE DATABASE IF NOT EXISTS</span> pyschool_db;
+<span class="highlight">USE</span> pyschool_db;
+
+<span class="comment">-- Tabela: tracks (Trilhas de aprendizado)</span>
+<span class="highlight">CREATE TABLE</span> tracks (
+    id <span class="highlight">INT AUTO_INCREMENT PRIMARY KEY</span>,
+    title <span class="highlight">VARCHAR</span>(100) <span class="highlight">NOT NULL</span>,
+    description <span class="highlight">TEXT</span>,
+    icon <span class="highlight">VARCHAR</span>(50),
+    created_at <span class="highlight">TIMESTAMP DEFAULT CURRENT_TIMESTAMP</span>
+);
+
+<span class="comment">-- Tabela: modules (Módulos dentro das trilhas)</span>
+<span class="highlight">CREATE TABLE</span> modules (
+    id <span class="highlight">INT AUTO_INCREMENT PRIMARY KEY</span>,
+    track_id <span class="highlight">INT NOT NULL</span>,
+    title <span class="highlight">VARCHAR</span>(100) <span class="highlight">NOT NULL</span>,
+    order_number <span class="highlight">INT NOT NULL</span>,
+    <span class="highlight">FOREIGN KEY</span> (track_id) <span class="highlight">REFERENCES</span> tracks(id) <span class="highlight">ON DELETE CASCADE</span>
+);
+
+<span class="comment">-- Tabela: lessons (Lições teóricas e práticas)</span>
+<span class="highlight">CREATE TABLE</span> lessons (
+    id <span class="highlight">INT AUTO_INCREMENT PRIMARY KEY</span>,
+    module_id <span class="highlight">INT NOT NULL</span>,
+    title <span class="highlight">VARCHAR</span>(150) <span class="highlight">NOT NULL</span>,
+    content_markdown <span class="highlight">LONGTEXT</span>, <span class="comment">-- Conteúdo da lição em MD</span>
+    xp_reward <span class="highlight">INT DEFAULT</span> 10,
+    order_number <span class="highlight">INT NOT NULL</span>,
+    <span class="highlight">FOREIGN KEY</span> (module_id) <span class="highlight">REFERENCES</span> modules(id) <span class="highlight">ON DELETE CASCADE</span>
+);
+
+<span class="comment">-- Tabela: exercises (Desafios de código)</span>
+<span class="highlight">CREATE TABLE</span> exercises (
+    id <span class="highlight">INT AUTO_INCREMENT PRIMARY KEY</span>,
+    lesson_id <span class="highlight">INT NOT NULL</span>,
+    title <span class="highlight">VARCHAR</span>(150) <span class="highlight">NOT NULL</span>,
+    description <span class="highlight">TEXT</span>,
+    starter_code <span class="highlight">LONGTEXT</span>, <span class="comment">-- Código inicial exibido no editor</span>
+    test_code <span class="highlight">LONGTEXT</span>, <span class="comment">-- Script de testes unitários (rodado no backend)</span>
+    xp_reward <span class="highlight">INT DEFAULT</span> 50,
+    <span class="highlight">FOREIGN KEY</span> (lesson_id) <span class="highlight">REFERENCES</span> lessons(id) <span class="highlight">ON DELETE CASCADE</span>
+);
+
+<span class="comment">-- Tabela: users (Usuário local - Single user por padrão, mas escalável)</span>
+<span class="highlight">CREATE TABLE</span> users (
+    id <span class="highlight">INT AUTO_INCREMENT PRIMARY KEY</span>,
+    name <span class="highlight">VARCHAR</span>(100) <span class="highlight">NOT NULL</span>,
+    email <span class="highlight">VARCHAR</span>(100) <span class="highlight">UNIQUE</span>,
+    total_xp <span class="highlight">INT DEFAULT</span> 0,
+    current_streak <span class="highlight">INT DEFAULT</span> 0,
+    last_login <span class="highlight">DATE</span>,
+    created_at <span class="highlight">TIMESTAMP DEFAULT CURRENT_TIMESTAMP</span>
+);
+
+<span class="comment">-- Tabela: user_lessons_progress (Relacionamento N:N - Progresso do usuário nas lições)</span>
+<span class="highlight">CREATE TABLE</span> user_lessons_progress (
+    id <span class="highlight">INT AUTO_INCREMENT PRIMARY KEY</span>,
+    user_id <span class="highlight">INT NOT NULL</span>,
+    lesson_id <span class="highlight">INT NOT NULL</span>,
+    status <span class="highlight">ENUM</span>(<span class="string">'pending'</span>, <span class="string">'completed'</span>) <span class="highlight">DEFAULT</span> <span class="string">'pending'</span>,
+    completed_at <span class="highlight">TIMESTAMP NULL</span>,
+    <span class="highlight">UNIQUE KEY</span> uniq_user_lesson (user_id, lesson_id),
+    <span class="highlight">FOREIGN KEY</span> (user_id) <span class="highlight">REFERENCES</span> users(id) <span class="highlight">ON DELETE CASCADE</span>,
+    <span class="highlight">FOREIGN KEY</span> (lesson_id) <span class="highlight">REFERENCES</span> lessons(id) <span class="highlight">ON DELETE CASCADE</span>
+);
+
+<span class="comment">-- Tabela: exercise_submissions (Histórico de envios de código)</span>
+<span class="highlight">CREATE TABLE</span> exercise_submissions (
+    id <span class="highlight">INT AUTO_INCREMENT PRIMARY KEY</span>,
+    user_id <span class="highlight">INT NOT NULL</span>,
+    exercise_id <span class="highlight">INT NOT NULL</span>,
+    submitted_code <span class="highlight">LONGTEXT NOT NULL</span>,
+    is_correct <span class="highlight">BOOLEAN DEFAULT FALSE</span>,
+    output_log <span class="highlight">TEXT</span>, <span class="comment">-- Saída do console ou erro</span>
+    created_at <span class="highlight">TIMESTAMP DEFAULT CURRENT_TIMESTAMP</span>,
+    <span class="highlight">FOREIGN KEY</span> (user_id) <span class="highlight">REFERENCES</span> users(id) <span class="highlight">ON DELETE CASCADE</span>,
+    <span class="highlight">FOREIGN KEY</span> (exercise_id) <span class="highlight">REFERENCES</span> exercises(id) <span class="highlight">ON DELETE CASCADE</span>
+);
+
+<span class="comment">-- Tabela: achievements (Selos/Conquistas)</span>
+<span class="highlight">CREATE TABLE</span> achievements (
+    id <span class="highlight">INT AUTO_INCREMENT PRIMARY KEY</span>,
+    name <span class="highlight">VARCHAR</span>(100) <span class="highlight">NOT NULL</span>,
+    description <span class="highlight">TEXT</span>,
+    icon <span class="highlight">VARCHAR</span>(50),
+    criteria <span class="highlight">VARCHAR</span>(255) <span class="comment">-- Ex: 'lessons_completed:10' ou 'xp:1000'</span>
+);
+
+<span class="comment">-- Tabela: user_achievements (Conquistas desbloqueadas pelo usuário)</span>
+<span class="highlight">CREATE TABLE</span> user_achievements (
+    id <span class="highlight">INT AUTO_INCREMENT PRIMARY KEY</span>,
+    user_id <span class="highlight">INT NOT NULL</span>,
+    achievement_id <span class="highlight">INT NOT NULL</span>,
+    awarded_at <span class="highlight">TIMESTAMP DEFAULT CURRENT_TIMESTAMP</span>,
+    <span class="highlight">UNIQUE KEY</span> uniq_user_ach (user_id, achievement_id),
+    <span class="highlight">FOREIGN KEY</span> (user_id) <span class="highlight">REFERENCES</span> users(id) <span class="highlight">ON DELETE CASCADE</span>,
+    <span class="highlight">FOREIGN KEY</span> (achievement_id) <span class="highlight">REFERENCES</span> achievements(id) <span class="highlight">ON DELETE CASCADE</span>
+);
+        </code></pre>
+
+        <h2>Notas de Implementação para o Backend</h2>
+        <ul>
+            <li><strong>Execução de Código:</strong> A tabela <code>exercise_submissions</code> guarda o código, mas a execução real do Python acontece no filesystem do localhost. O backend deve escrever o <code>submitted_code</code> e o <code>test_code</code> em um arquivo temporário (ex: <code>temp_test.py</code>), rodar via <code>subprocess.run(['python', 'temp_test.py'])</code> e salvar o resultado em <code>output_log</code> e <code>is_correct</code>.</li>
+            <li><strong>Gamificação (XP):</strong> Ao inserir um registro em <code>user_lessons_progress</code> com status 'completed' ou atualizar <code>exercise_submissions.is_correct</code> para TRUE, o backend deve disparar um trigger ou evento de serviço para somar o XP correspondente em <code>users.total_xp</code>.</li>
+            <li><strong>Ambiente Local:</strong> O MySQL deve ser configurado com usuário <code>root</code> e senha em branco (ou uma senha padrão definida no arquivo <code>.env</code> do backend) para facilitar o setup na máquina do desenvolvedor/estudante.</li>
+        </ul>
+    </div>
+</body>
+</html>
