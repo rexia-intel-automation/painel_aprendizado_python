@@ -1,1 +1,197 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PySchool - Design System</title>
+    <style>
+        :root {
+            /* Cores Primárias (Inspiradas no Python) */
+            --color-primary: #306998; /* Azul Python */
+            --color-primary-hover: #264c70;
+            --color-secondary: #FFD43B; /* Amarelo Python */
+            --color-secondary-hover: #e6bf2e;
+            
+            /* Cores de Feedback */
+            --color-success: #28a745;
+            --color-error: #dc3545;
+            --color-warning: #ffc107;
+            --color-info: #17a2b8;
 
+            /* Cores Neutras (Dark Mode First para IDE) */
+            --color-bg: #1e1e2e;
+            --color-surface: #2b2b3c;
+            --color-surface-hover: #353548;
+            --color-border: #454560;
+            --color-text: #e4e4ef;
+            --color-text-muted: #9e9eb1;
+
+            /* Tipografia */
+            --font-family-body: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            --font-family-code: 'Fira Code', 'Courier New', monospace;
+            --font-size-sm: 0.875rem;
+            --font-size-md: 1rem;
+            --font-size-lg: 1.25rem;
+            --font-size-xl: 1.5rem;
+            --font-weight-normal: 400;
+            --font-weight-bold: 700;
+
+            /* Espaçamento */
+            --space-1: 4px;
+            --space-2: 8px;
+            --space-3: 16px;
+            --space-4: 24px;
+            --space-5: 32px;
+
+            /* Bordas e Sombras */
+            --radius-sm: 4px;
+            --radius-md: 8px;
+            --radius-lg: 16px;
+            --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        body {
+            margin: 0;
+            background-color: var(--color-bg);
+            color: var(--color-text);
+            font-family: var(--font-family-body);
+            padding: var(--space-5);
+            line-height: 1.6;
+        }
+
+        h1, h2, h3 { color: var(--color-secondary); }
+        code { font-family: var(--font-family-code); background: var(--color-surface); padding: var(--space-1) var(--space-2); border-radius: var(--radius-sm); }
+
+        .container { max-width: 1000px; margin: 0 auto; }
+        .section { margin-bottom: var(--space-5); padding: var(--space-4); background: var(--color-surface); border-radius: var(--radius-md); border: 1px solid var(--color-border); }
+        .grid { display: flex; gap: var(--space-3); flex-wrap: wrap; }
+
+        /* Componentes Primitivos */
+        .btn {
+            padding: var(--space-2) var(--space-4);
+            border: none;
+            border-radius: var(--radius-sm);
+            font-family: var(--font-family-body);
+            font-size: var(--font-size-md);
+            cursor: pointer;
+            transition: background 0.2s;
+            color: white;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn-primary { background: var(--color-primary); }
+        .btn-primary:hover { background: var(--color-primary-hover); }
+        .btn-secondary { background: var(--color-secondary); color: #000; }
+        .btn-secondary:hover { background: var(--color-secondary-hover); }
+        .btn-outline { background: transparent; border: 1px solid var(--color-border); color: var(--color-text); }
+        .btn-outline:hover { background: var(--color-surface-hover); }
+
+        .input {
+            background: var(--color-bg);
+            border: 1px solid var(--color-border);
+            color: var(--color-text);
+            padding: var(--space-2) var(--space-3);
+            border-radius: var(--radius-sm);
+            font-family: var(--font-family-body);
+            font-size: var(--font-size-md);
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .input:focus { outline: none; border-color: var(--color-primary); }
+
+        .badge {
+            padding: var(--space-1) var(--space-3);
+            border-radius: 12px;
+            font-size: var(--font-size-sm);
+            font-weight: var(--font-weight-bold);
+        }
+        .badge-success { background: rgba(40, 167, 69, 0.2); color: var(--color-success); }
+        .badge-warning { background: rgba(255, 193, 7, 0.2); color: var(--color-warning); }
+
+        .card {
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-md);
+            padding: var(--space-4);
+            box-shadow: var(--shadow-md);
+            transition: transform 0.2s;
+        }
+        .card:hover { transform: translateY(-2px); border-color: var(--color-primary); }
+
+        /* Progress Bar */
+        .progress-bg { width: 100%; height: 8px; background: var(--color-border); border-radius: 4px; overflow: hidden; }
+        .progress-fill { height: 100%; background: var(--color-secondary); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>PySchool Design System</h1>
+            <p>Tokens, primitivos e componentes para o ecossistema de aprendizado Python.</p>
+        </header>
+
+        <section class="section">
+            <h2>Tipografia & Cores</h2>
+            <div class="grid">
+                <div>
+                    <p>Fonte Corpo: <code>Segoe UI, Roboto</code></p>
+                    <p>Fonte Código: <code>Fira Code</code></p>
+                    <p style="color: var(--color-primary);">Cor Primária (Azul Python)</p>
+                    <p style="color: var(--color-secondary);">Cor Secundária (Amarelo Python)</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>Botões</h2>
+            <div class="grid">
+                <button class="btn btn-primary">Executar Código</button>
+                <button class="btn btn-secondary">Próxima Lição</button>
+                <button class="btn btn-outline">Pular Desafio</button>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>Inputs e Formulários</h2>
+            <input type="text" class="input" placeholder="Digite o nome do seu projeto...">
+        </section>
+
+        <section class="section">
+            <h2>Badges (Gamificação)</h2>
+            <div class="grid">
+                <span class="badge badge-success">Concluído</span>
+                <span class="badge badge-warning">Em Progresso</span>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>Componentes de Progresso</h2>
+            <div class="progress-bg">
+                <div class="progress-fill" style="width: 60%;"></div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>Cards (Módulos/Lições)</h2>
+            <div class="grid">
+                <div class="card" style="width: 300px;">
+                    <h3 style="margin-top:0;">Módulo 1: Fundamentos</h3>
+                    <p style="color: var(--color-text-muted)">Aprenda variáveis, loops e funções.</p>
+                    <div class="progress-bg" style="margin-bottom: var(--space-3);">
+                        <div class="progress-fill" style="width: 100%;"></div>
+                    </div>
+                    <button class="btn btn-primary" style="width: 100%;">Revisar</button>
+                </div>
+                <div class="card" style="width: 300px;">
+                    <h3 style="margin-top:0;">Módulo 2: POO</h3>
+                    <p style="color: var(--color-text-muted)">Programação Orientada a Objetos.</p>
+                    <div class="progress-bg" style="margin-bottom: var(--space-3);">
+                        <div class="progress-fill" style="width: 20%;"></div>
+                    </div>
+                    <button class="btn btn-secondary" style="width: 100%;">Continuar</button>
+                </div>
+            </div>
+        </section>
+    </div>
+</body>
+</html>
