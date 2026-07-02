@@ -1,1 +1,134 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PySchool - Especificação de Banco de Dados (MySQL)</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 { color: #306998; border-bottom: 2px solid #FFD43B; padding-bottom: 10px; }
+        h2 { color: #1e466e; margin-top: 30px; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            background: #fff;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        th, td {
+            padding: 12px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+        th { background-color: #306998; color: white; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        .pk { font-weight: bold; color: #dc3545; }
+        .fk { color: #17a2b8; }
+        .relation {
+            background-color: #eef6fc;
+            border-left: 4px solid #306998;
+            padding: 10px;
+            margin-bottom: 20px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
 
+    <h1>Schema do Banco de Dados - PySchool (MySQL Local)</h1>
+    <p>Especificação das tabelas, relacionamentos e tipos de dados para o MVP da plataforma.</p>
+
+    <div class="relation">
+        <strong>Relacionamentos Gerais:</strong><br>
+        Users (1) --- (N) UserProgress<br>
+        Tracks (1) --- (N) Modules<br>
+        Modules (1) --- (N) Lessons<br>
+        Lessons (1) --- (N) Exercises<br>
+        Users (1) --- (N) ExerciseSubmissions
+    </div>
+
+    <h2>Tabela: users</h2>
+    <p>Armazena os dados dos alunos e professores locais.</p>
+    <table>
+        <tr><th>Coluna</th><th>Tipo</th><th>Atributos</th><th>Descrição</th></tr>
+        <tr><td class="pk">id</td><td>INT</td><td>PK, AUTO_INC</td><td>Identificador único</td></tr>
+        <tr><td>name</td><td>VARCHAR(100)</td><td>NOT NULL</td><td>Nome do usuário</td></tr>
+        <tr><td>email</td><td>VARCHAR(150)</td><td>NOT NULL, UNIQUE</td><td>E-mail para login</td></tr>
+        <tr><td>password_hash</td><td>VARCHAR(255)</td><td>NOT NULL</td><td>Senha criptografada (bcrypt)</td></tr>
+        <tr><td>total_xp</td><td>INT</td><td>DEFAULT 0</td><td>Pontos de experiência acumulados</td></tr>
+        <tr><td>created_at</td><td>TIMESTAMP</td><td>DEFAULT CURRENT_TIMESTAMP</td><td>Data de cadastro</td></tr>
+    </table>
+
+    <h2>Tabela: tracks</h2>
+    <p>Trilhas de aprendizado (ex: Fundamentos Python, POO, Data Science).</p>
+    <table>
+        <tr><th>Coluna</th><th>Tipo</th><th>Atributos</th><th>Descrição</th></tr>
+        <tr><td class="pk">id</td><td>INT</td><td>PK, AUTO_INC</td><td>Identificador único</td></tr>
+        <tr><td>title</td><td>VARCHAR(100)</td><td>NOT NULL</td><td>Nome da trilha</td></tr>
+        <tr><td>description</td><td>TEXT</td><td>NULL</td><td>Descrição curta</td></tr>
+        <tr><td>icon_url</td><td>VARCHAR(255)</td><td>NULL</td><td>Caminho do ícone local</td></tr>
+    </table>
+
+    <h2>Tabela: modules</h2>
+    <p>Módulos que compõem uma trilha.</p>
+    <table>
+        <tr><th>Coluna</th><th>Tipo</th><th>Atributos</th><th>Descrição</th></tr>
+        <tr><td class="pk">id</td><td>INT</td><td>PK, AUTO_INC</td><td>Identificador único</td></tr>
+        <tr><td class="fk">track_id</td><td>INT</td><td>FK (tracks.id)</td><td>Trilha a que pertence</td></tr>
+        <tr><td>title</td><td>VARCHAR(100)</td><td>NOT NULL</td><td>Título do módulo</td></tr>
+        <tr><td>order_index</td><td>INT</td><td>NOT NULL</td><td>Ordem do módulo na trilha</td></tr>
+    </table>
+
+    <h2>Tabela: lessons</h2>
+    <p>Aulas teóricas e práticas dentro de um módulo.</p>
+    <table>
+        <tr><th>Coluna</th><th>Tipo</th><th>Atributos</th><th>Descrição</th></tr>
+        <tr><td class="pk">id</td><td>INT</td><td>PK, AUTO_INC</td><td>Identificador único</td></tr>
+        <tr><td class="fk">module_id</td><td>INT</td><td>FK (modules.id)</td><td>Módulo a que pertence</td></tr>
+        <tr><td>title</td><td>VARCHAR(150)</td><td>NOT NULL</td><td>Título da aula</td></tr>
+        <tr><td>content_md</td><td>LONGTEXT</td><td>NOT NULL</td><td>Conteúdo em formato Markdown</td></tr>
+        <tr><td>order_index</td><td>INT</td><td>NOT NULL</td><td>Ordem da aula no módulo</td></tr>
+    </table>
+
+    <h2>Tabela: exercises</h2>
+    <p>Exercícios atrelados a uma aula.</p>
+    <table>
+        <tr><th>Coluna</th><th>Tipo</th><th>Atributos</th><th>Descrição</th></tr>
+        <tr><td class="pk">id</td><td>INT</td><td>PK, AUTO_INC</td><td>Identificador único</td></tr>
+        <tr><td class="fk">lesson_id</td><td>INT</td><td>FK (lessons.id)</td><td>Aula a que pertence</td></tr>
+        <tr><td>statement</td><td>TEXT</td><td>NOT NULL</td><td>Enunciado do problema</td></tr>
+        <tr><td>initial_code</td><td>TEXT</td><td>NULL</td><td>Código inicial para o aluno</td></tr>
+        <tr><td>solution</td><td>TEXT</td><td>NOT NULL</td><td>Gabarito para validação local</td></tr>
+        <tr><td>xp_reward</td><td>INT</td><td>DEFAULT 10</td><td>Pontos ganhos ao acertar</td></tr>
+    </table>
+
+    <h2>Tabela: user_progress</h2>
+    <p>Controla quais aulas o usuário marcou como concluídas.</p>
+    <table>
+        <tr><th>Coluna</th><th>Tipo</th><th>Atributos</th><th>Descrição</th></tr>
+        <tr><td class="pk">id</td><td>INT</td><td>PK, AUTO_INC</td><td>Identificador único</td></tr>
+        <tr><td class="fk">user_id</td><td>INT</td><td>FK (users.id)</td><td>Usuário</td></tr>
+        <tr><td class="fk">lesson_id</td><td>INT</td><td>FK (lessons.id)</td><td>Aula concluída</td></tr>
+        <tr><td>completed_at</td><td>TIMESTAMP</td><td>DEFAULT CURRENT_TIMESTAMP</td><td>Data de conclusão</td></tr>
+    </table>
+
+    <h2>Tabela: exercise_submissions</h2>
+    <p>Histórico de tentativas dos usuários nos exercícios.</p>
+    <table>
+        <tr><th>Coluna</th><th>Tipo</th><th>Atributos</th><th>Descrição</th></tr>
+        <tr><td class="pk">id</td><td>INT</td><td>PK, AUTO_INC</td><td>Identificador único</td></tr>
+        <tr><td class="fk">user_id</td><td>INT</td><td>FK (users.id)</td><td>Usuário</td></tr>
+        <tr><td class="fk">exercise_id</td><td>INT</td><td>FK (exercises.id)</td><td>Exercício tentado</td></tr>
+        <tr><td>submitted_code</td><td>TEXT</td><td>NOT NULL</td><td>Código enviado pelo usuário</td></tr>
+        <tr><td>is_correct</td><td>BOOLEAN</td><td>DEFAULT FALSE</td><td>Se a resposta foi validada como correta</td></tr>
+        <tr><td>submitted_at</td><td>TIMESTAMP</td><td>DEFAULT CURRENT_TIMESTAMP</td><td>Data da tentativa</td></tr>
+    </table>
+
+</body>
+</html>
